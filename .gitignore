@@ -1,0 +1,11 @@
+# macOS
+.DS_Store
+Thumbs.db
+
+# Logs & temporary
+*.log
+npm-debug.log*
+
+# Environment
+.env
+.env.local
