@@ -412,6 +412,8 @@ input, select, textarea { font-family: inherit; color: inherit; }
 .mobile-menu.open .mobile-link:nth-child(6) { transition-delay: 0.33s; }
 .mobile-menu.open .mobile-link:nth-child(7) { transition-delay: 0.38s; }
 .mobile-menu.open .mobile-link:nth-child(8) { transition-delay: 0.43s; }
+.mobile-menu.open .mobile-link:nth-child(9) { transition-delay: 0.48s; }
+.mobile-menu.open .mobile-link:nth-child(10) { transition-delay: 0.53s; }
 .mobile-link span { font-family: var(--font-body); font-size: 0.78rem; color: var(--cyan); letter-spacing: 0.2em; }
 .mobile-link:hover { color: var(--cyan); }
 
@@ -1690,12 +1692,16 @@ body.menu-locked { overflow: hidden; }
   .contact-form { padding: 26px 22px; }
   .form-row { grid-template-columns: 1fr; gap: 0; }
 
+  .nav-actions .nav-link { display: none; }
+  .nav-login-btn { padding: 10px 14px; }
+
   .footer-top { grid-template-columns: 1fr 1fr; gap: 30px; }
   .back-top { right: 16px; bottom: 16px; }
 }
 
 @media (max-width: 480px) {
   .nav-cta { display: none; }
+  .nav-login-btn { display: none; }
   .stats-grid { gap: 10px; }
   .stat-label { font-size: 0.78rem; }
   .industries-grid { grid-template-columns: 1fr 1fr; gap: 12px; }

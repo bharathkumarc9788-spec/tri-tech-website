@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Primary SEO -->
+  <title>Sign In | TRI TECH Client Portal</title>
+  <meta name="description" content="Sign in to the TRI TECH client portal to manage your projects, milestones, contracts and invoices." />
+  <meta name="robots" content="noindex, nofollow" />
+  <meta name="theme-color" content="#050812" />
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" sizes="48x48" href="assets/favicon-48.png" />
+  <link rel="icon" type="image/png" sizes="64x64" href="assets/favicon-64.png" />
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/auth.css" />
+</head>
+
+<body class="auth-page">
+  <a class="skip-link" href="#login-form">Skip to content</a>
+
+  <!-- Fixed ambient layers -->
+  <div class="ambient-grid" aria-hidden="true"></div>
+  <div class="scroll-glow" aria-hidden="true"></div>
+  <div class="auth-orb auth-orb-1" aria-hidden="true"></div>
+  <div class="auth-orb auth-orb-2" aria-hidden="true"></div>
+
+  <!-- ============ AUTH NAV ============ -->
+  <header class="auth-nav">
+    <div class="container auth-nav-inner">
+      <a href="index.html" class="brand" aria-label="TRI TECH home">
+        <span class="brand-mark">
+          <img src="assets/logo-emblem-256.png" alt="TRI TECH logo" width="40" height="40" class="brand-logo" />
+        </span>
+        <span class="brand-text">TRI&nbsp;TECH</span>
+      </a>
+
+      <nav class="auth-nav-links" aria-label="Portal navigation">
+        <a href="developer-console.html" class="btn btn-ghost btn-sm">Developer Console →</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ============ AUTH MAIN ============ -->
+  <main class="auth-main" id="main">
+    <section class="auth-card" aria-labelledby="auth-title">
+      <div class="auth-brand">
+        <span class="auth-emblem">
+          <img src="assets/logo-emblem-256.png" alt="" width="64" height="64" />
+        </span>
+        <div>
+          <h1 class="auth-title" id="auth-title">Client &amp; Partner Portal</h1>
+          <p class="auth-sub">Welcome back — sign in to manage your projects.</p>
+        </div>
+      </div>
+
+      <form id="login-form" data-auth="client" data-email="login-email" data-pass="login-password" data-note="login-note" novalidate>
+        <div class="field">
+          <label for="login-email">Email address</label>
+          <div class="field-control">
+            <svg class="field-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="m22 7-10 6L2 7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <input type="email" id="login-email" name="email" placeholder="you@company.com" autocomplete="email" data-remembered required />
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="login-password">Password</label>
+          <div class="field-control">
+            <svg class="field-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+            <input type="password" id="login-password" name="password" placeholder="••••••••" autocomplete="current-password" class="has-toggle" required />
+            <button type="button" class="pass-toggle" data-target="login-password" aria-label="Show password" aria-pressed="false">
+              <svg class="eye-on" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.6"/></svg>
+              <svg class="eye-off" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 0 1-4.24-4.24M1 1l22 22" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="auth-options">
+          <label class="auth-remember">
+            <input type="checkbox" id="login-remember" name="remember" />
+            Remember me
+          </label>
+          <a href="#" class="auth-forgot" data-forgot>Forgot password?</a>
+        </div>
+
+        <button type="submit" class="btn btn-primary auth-submit">Sign In →</button>
+        <p class="auth-note" id="login-note" role="status"></p>
+      </form>
+
+      <div class="auth-divider" aria-hidden="true">or continue with</div>
+
+      <div class="social-row">
+        <button type="button" class="social-btn" data-social="Google">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21.35 11.1H12v3.6h5.44c-.38 2-1.56 3.5-3.2 4.35v3.4h5.34c3.02-2.78 4.77-6.87 4.77-11.2 0-.38-.03-.76-.1-1.1z" fill="#4285F4"/><path d="M12 22c3.24 0 5.96-1.08 7.94-2.9l-5.34-3.55c-.9.6-2.05.96-3.6.96-2.77 0-5.12-1.87-5.95-4.4H.68v3.66A11.98 11.98 0 0 0 12 22z" fill="#34A853"/><path d="M6.05 12.1a6.5 6.5 0 0 1 0-4.2V4.24H.68a12 12 0 0 0 0 10.48l5.37-4.22z" fill="#FBBC05"/><path d="M12 5.03c1.76 0 3.34.6 4.58 1.79l4.3-4.3A11.96 11.96 0 0 0 12 0 11.98 11.98 0 0 0 .68 4.24l5.37 4.18C6.88 6.9 9.23 5.03 12 5.03z" fill="#EA4335"/></svg>
+          Google
+        </button>
+        <button type="button" class="social-btn" data-social="GitHub">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0a12 12 0 0 0-3.8 23.4c.6.1.82-.26.82-.58v-2.03c-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.08-.74.08-.73.08-.73 1.2.08 1.83 1.23 1.83 1.23 1.07 1.84 2.8 1.31 3.49 1 .1-.78.42-1.3.76-1.6-2.68-.3-5.5-1.34-5.5-5.96 0-1.32.47-2.4 1.24-3.24-.13-.3-.54-1.54.11-3.2 0 0 1.02-.33 3.3 1.24a11.5 11.5 0 0 1 6 0c2.28-1.57 3.3-1.24 3.3-1.24.65 1.66.24 2.9.11 3.2.77.84 1.24 1.92 1.24 3.24 0 4.63-2.83 5.65-5.52 5.95.43.37.81 1.1.81 2.22v3.29c0 .32.21.7.83.57A12 12 0 0 0 12 0z"/></svg>
+          GitHub
+        </button>
+        <button type="button" class="social-btn" data-social="LinkedIn">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.34V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.07 2.07 0 1 1 0-4.13 2.07 2.07 0 0 1 0 4.13zM7.12 20.45H3.55V9h3.57v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0z"/></svg>
+          LinkedIn
+        </button>
+      </div>
+
+      <p class="auth-trust">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="m9 12 2 2 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Secured with 256-bit TLS encryption
+      </p>
+
+      <p class="auth-foot">
+        New to TRI TECH?
+        <a href="#" class="auth-foot-cta" data-open-access>Request client access</a>
+      </p>
+    </section>
+  </main>
+
+  <footer class="auth-site-footer">
+    <div class="container">
+      © 2026 TRI TECH. All rights reserved.
+      &nbsp;·&nbsp;
+      <a href="index.html#home">Privacy Policy</a>
+      &nbsp;·&nbsp;
+      <a href="index.html#home">Terms &amp; Conditions</a>
+    </div>
+  </footer>
+
+  <!-- ============ CLIENT ACCESS REQUEST MODAL ============ -->
+  <div class="modal-overlay" id="access-modal" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="access-title">
+      <div class="modal-head">
+        <div>
+          <h2 class="modal-title" id="access-title">Client Access Request</h2>
+          <p class="auth-sub">Share your contact details — our team will reach out to you.</p>
+        </div>
+        <button type="button" class="modal-close" id="access-close" aria-label="Close access request form">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+
+      <form id="access-request-form" novalidate>
+        <div class="field">
+          <label for="access-email">Email ID</label>
+          <div class="field-control">
+            <svg class="field-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="m22 7-10 6L2 7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <input type="email" id="access-email" name="email" placeholder="you@company.com" autocomplete="email" required />
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="access-mobile">Mobile Number</label>
+          <div class="field-control">
+            <svg class="field-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.08 4.18 2 2 0 0 1 4.06 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+            <input type="tel" id="access-mobile" name="mobile" placeholder="+91 98765 43210" autocomplete="tel" inputmode="tel" required />
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="access-details">Details</label>
+          <div class="field-control">
+            <svg class="field-icon field-icon-top" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+            <textarea id="access-details" name="details" rows="4" placeholder="Tell us about your project or what you need access for..." required></textarea>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary auth-submit">Submit Request →</button>
+        <p class="auth-note" id="access-note" role="status"></p>
+      </form>
+
+      <div class="modal-foot">
+        <button type="button" class="dash-signout" id="access-cancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/auth.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Primary SEO -->
+  <title>Developer Console | TRI TECH</title>
+  <meta name="description" content="Sign in to the TRI TECH developer console to manage APIs, projects, deployments, keys and team access." />
+  <meta name="robots" content="noindex, nofollow" />
+  <meta name="theme-color" content="#050812" />
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" sizes="48x48" href="assets/favicon-48.png" />
+  <link rel="icon" type="image/png" sizes="64x64" href="assets/favicon-64.png" />
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/auth.css" />
+</head>
+
+<body class="auth-page">
+  <a class="skip-link" href="#dev-form">Skip to content</a>
+
+  <!-- Fixed ambient layers -->
+  <div class="ambient-grid" aria-hidden="true"></div>
+  <div class="scroll-glow" aria-hidden="true"></div>
+  <div class="auth-orb auth-orb-1" aria-hidden="true"></div>
+  <div class="auth-orb auth-orb-2" aria-hidden="true"></div>
+
+  <!-- ============ AUTH NAV ============ -->
+  <header class="auth-nav">
+    <div class="container auth-nav-inner">
+      <a href="index.html" class="brand" aria-label="TRI TECH home">
+        <span class="brand-mark">
+          <img src="assets/logo-emblem-256.png" alt="TRI TECH logo" width="40" height="40" class="brand-logo" />
+        </span>
+        <span class="brand-text">TRI&nbsp;TECH</span>
+      </a>
+
+      <nav class="auth-nav-links" aria-label="Portal navigation">
+        <a href="login.html" class="btn btn-ghost btn-sm">Client Portal →</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ============ AUTH MAIN ============ -->
+  <main class="auth-main" id="main">
+    <section class="auth-card auth-card--dev" aria-labelledby="dev-title">
+      <div class="auth-brand">
+        <span class="auth-emblem">
+          <img src="assets/logo-emblem-256.png" alt="" width="64" height="64" />
+        </span>
+        <span class="auth-tag">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m8 8-4 4 4 4M16 8l4 4-4 4M13 5l-2 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Developer Access
+        </span>
+        <div>
+          <h1 class="auth-title" id="dev-title">Developer Console</h1>
+          <p class="auth-sub">Manage APIs, projects, deployments and keys.</p>
+        </div>
+      </div>
+
+      <div class="term-window" aria-hidden="true">
+        <div class="term-bar">
+          <span class="term-dot term-dot--r"></span>
+          <span class="term-dot term-dot--y"></span>
+          <span class="term-dot term-dot--g"></span>
+          <span class="term-title">dev@tritech: ~/console</span>
+        </div>
+        <div class="term-body">
+          <p><span class="term-prompt">dev@tritech:~$</span> <span data-type="tritech console --auth"><span class="term-cursor"></span></span></p>
+          <p class="term-ok">› Authentication required. Enter your access credentials below.</p>
+        </div>
+      </div>
+
+      <form id="dev-form" data-auth="dev" data-email="dev-email" data-pass="dev-token" data-note="dev-note" novalidate>
+        <div class="field">
+          <label for="dev-email">Console email</label>
+          <div class="field-control">
+            <svg class="field-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.6"/><path d="M4 21v-1a7 7 0 0 1 14 0v1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+            <input type="email" id="dev-email" name="email" placeholder="dev@yourcompany.com" autocomplete="username" data-remembered required />
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="dev-token">Access token</label>
+          <div class="field-control">
+            <svg class="field-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="7.5" cy="15.5" r="4.5" stroke="currentColor" stroke-width="1.6"/><path d="m11 12 8-8M16 7l3 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <input type="password" id="dev-token" name="token" placeholder="ttc_••••••••••••••••" autocomplete="current-password" class="has-toggle" required />
+            <button type="button" class="pass-toggle" data-target="dev-token" aria-label="Show token" aria-pressed="false">
+              <svg class="eye-on" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.6"/></svg>
+              <svg class="eye-off" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 0 1-4.24-4.24M1 1l22 22" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Grant permission to</label>
+          <div class="permission-pills" role="radiogroup" aria-label="Choose console permission level">
+            <label class="permission-pill">
+              <input type="radio" name="permission" value="admin" checked />
+              <span><strong>✎ Edit Everything</strong><small>Full control over code, config, deploys, keys &amp; team</small></span>
+            </label>
+            <label class="permission-pill">
+              <input type="radio" name="permission" value="editor" />
+              <span><strong>Editor</strong><small>Edit code, settings &amp; deployments</small></span>
+            </label>
+            <label class="permission-pill">
+              <input type="radio" name="permission" value="deploy" />
+              <span><strong>Deployer</strong><small>Releases &amp; CI/CD only</small></span>
+            </label>
+            <label class="permission-pill">
+              <input type="radio" name="permission" value="viewer" />
+              <span><strong>Read Only</strong><small>View the console, make no changes</small></span>
+            </label>
+          </div>
+          <p class="field-hint">Full Access grants the developer permission to edit everything in the workspace. Fine-tune toggles after sign-in.</p>
+        </div>
+
+        <div class="auth-options">
+          <label class="auth-remember">
+            <input type="checkbox" id="dev-remember" name="remember" />
+            Remember this device
+          </label>
+          <a href="#" class="auth-forgot" data-forgot>Reset access token</a>
+        </div>
+
+        <button type="submit" class="btn btn-primary auth-submit">Authenticate →</button>
+        <p class="auth-note" id="dev-note" role="status"></p>
+      </form>
+
+      <div class="auth-divider" aria-hidden="true">or continue with</div>
+
+      <div class="social-row">
+        <button type="button" class="social-btn" data-social="GitHub">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0a12 12 0 0 0-3.8 23.4c.6.1.82-.26.82-.58v-2.03c-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.08-.74.08-.73.08-.73 1.2.08 1.83 1.23 1.83 1.23 1.07 1.84 2.8 1.31 3.49 1 .1-.78.42-1.3.76-1.6-2.68-.3-5.5-1.34-5.5-5.96 0-1.32.47-2.4 1.24-3.24-.13-.3-.54-1.54.11-3.2 0 0 1.02-.33 3.3 1.24a11.5 11.5 0 0 1 6 0c2.28-1.57 3.3-1.24 3.3-1.24.65 1.66.24 2.9.11 3.2.77.84 1.24 1.92 1.24 3.24 0 4.63-2.83 5.65-5.52 5.95.43.37.81 1.1.81 2.22v3.29c0 .32.21.7.83.57A12 12 0 0 0 12 0z"/></svg>
+          GitHub
+        </button>
+        <button type="button" class="social-btn" data-social="Google">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21.35 11.1H12v3.6h5.44c-.38 2-1.56 3.5-3.2 4.35v3.4h5.34c3.02-2.78 4.77-6.87 4.77-11.2 0-.38-.03-.76-.1-1.1z" fill="#4285F4"/><path d="M12 22c3.24 0 5.96-1.08 7.94-2.9l-5.34-3.55c-.9.6-2.05.96-3.6.96-2.77 0-5.12-1.87-5.95-4.4H.68v3.66A11.98 11.98 0 0 0 12 22z" fill="#34A853"/><path d="M6.05 12.1a6.5 6.5 0 0 1 0-4.2V4.24H.68a12 12 0 0 0 0 10.48l5.37-4.22z" fill="#FBBC05"/><path d="M12 5.03c1.76 0 3.34.6 4.58 1.79l4.3-4.3A11.96 11.96 0 0 0 12 0 11.98 11.98 0 0 0 .68 4.24l5.37 4.18C6.88 6.9 9.23 5.03 12 5.03z" fill="#EA4335"/></svg>
+          Google
+        </button>
+        <button type="button" class="social-btn" data-social="GitLab">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M22.65 14.39 12 22.13 1.35 14.39a.84.84 0 0 1-.3-.94l1.09-3.38 1.6-7.57a.42.42 0 0 1 .8 0l1.6 7.9h11.72l1.6-7.9a.42.42 0 0 1 .8 0l1.6 7.57 1.09 3.38a.84.84 0 0 1-.3.94z"/></svg>
+          GitLab
+        </button>
+      </div>
+
+      <p class="auth-trust">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="m9 12 2 2 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Signed requests — tokens scoped to your developer role
+      </p>
+
+      <p class="auth-foot">
+        Don&rsquo;t have developer access?
+        <a href="index.html#contact">Apply for access</a>
+      </p>
+
+      <ul class="dev-list">
+        <li class="dev-item">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 6 9 17l-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Manage API keys &amp; webhooks
+        </li>
+        <li class="dev-item">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 6 9 17l-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Deploy builds &amp; releases
+        </li>
+        <li class="dev-item">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 6 9 17l-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Monitor analytics &amp; logs
+        </li>
+        <li class="dev-item">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 6 9 17l-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Manage team access &amp; roles
+        </li>
+      </ul>
+    </section>
+  </main>
+
+  <footer class="auth-site-footer">
+    <div class="container">
+      © 2026 TRI TECH. All rights reserved.
+      &nbsp;·&nbsp;
+      <a href="index.html#home">Privacy Policy</a>
+      &nbsp;·&nbsp;
+      <a href="index.html#home">Terms &amp; Conditions</a>
+    </div>
+  </footer>
+
+  <script src="js/auth.js" defer></script>
+</body>
+</html>

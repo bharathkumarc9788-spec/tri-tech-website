@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Primary SEO -->
+  <title>Permissions | TRI TECH Developer Console</title>
+  <meta name="description" content="Set Developer Console permissions — grant the developer permission to edit everything: code, deployments, API keys, webhooks and team access." />
+  <meta name="robots" content="noindex, nofollow" />
+  <meta name="theme-color" content="#050812" />
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" sizes="48x48" href="assets/favicon-48.png" />
+  <link rel="icon" type="image/png" sizes="64x64" href="assets/favicon-64.png" />
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/auth.css" />
+</head>
+
+<body class="auth-page">
+  <a class="skip-link" href="#permissions">Skip to content</a>
+
+  <!-- Fixed ambient layers -->
+  <div class="ambient-grid" aria-hidden="true"></div>
+  <div class="scroll-glow" aria-hidden="true"></div>
+  <div class="auth-orb auth-orb-1" aria-hidden="true"></div>
+  <div class="auth-orb auth-orb-2" aria-hidden="true"></div>
+
+  <!-- ============ AUTH NAV ============ -->
+  <header class="auth-nav">
+    <div class="container auth-nav-inner">
+      <a href="index.html" class="brand" aria-label="TRI TECH home">
+        <span class="brand-mark">
+          <img src="assets/logo-emblem-256.png" alt="TRI TECH logo" width="40" height="40" class="brand-logo" />
+        </span>
+        <span class="brand-text">TRI&nbsp;TECH</span>
+      </a>
+
+      <nav class="auth-nav-links" aria-label="Console navigation">
+        <a href="login.html" class="btn btn-ghost btn-sm">Client Portal →</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ============ DASHBOARD ============ -->
+  <main class="auth-main" id="main">
+    <section class="auth-card auth-card--dev dash-card" id="permissions" aria-labelledby="dash-title">
+      <div class="auth-brand">
+        <span class="auth-emblem">
+          <img src="assets/logo-emblem-256.png" alt="" width="64" height="64" />
+        </span>
+        <span class="auth-tag">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m8 8-4 4 4 4M16 8l4 4-4 4M13 5l-2 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Permissions
+        </span>
+        <div>
+          <h1 class="auth-title" id="dash-title">Developer Console</h1>
+          <p class="auth-sub">Grant &amp; manage edit permissions for your workspace.</p>
+        </div>
+      </div>
+
+      <div class="dash-header">
+        <p class="dash-user">Signed in as <strong id="dash-email">—</strong></p>
+        <span class="dash-role"><span class="status-dot" aria-hidden="true"></span><span id="dash-role">—</span></span>
+      </div>
+
+      <h2 class="dash-sec-title">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="4" y="10" width="16" height="10" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M8 10V7a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="m12 14 1.5 1.5L16 13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Workspace Permissions
+      </h2>
+      <p class="dash-sec-sub">Toggle exactly what this developer can edit. Enable <strong>Edit Everything</strong> for full control.</p>
+
+      <div class="toggle toggle--master">
+        <div class="toggle-info">
+          <strong>✎ Edit Everything</strong>
+          <small>Full control — code, config, deployments, keys &amp; team access.</small>
+        </div>
+        <label class="toggle-control">
+          <input type="checkbox" id="perm-master" checked />
+          <span class="toggle-track" aria-hidden="true"></span>
+        </label>
+      </div>
+
+      <div class="toggle">
+        <div class="toggle-info">
+          <strong>Edit source code</strong>
+          <small>Repositories, branches, commits &amp; pull requests.</small>
+        </div>
+        <label class="toggle-control">
+          <input type="checkbox" id="perm-code" checked />
+          <span class="toggle-track" aria-hidden="true"></span>
+        </label>
+      </div>
+
+      <div class="toggle">
+        <div class="toggle-info">
+          <strong>Edit deployments &amp; CI/CD</strong>
+          <small>Releases, pipelines, environments &amp; build config.</small>
+        </div>
+        <label class="toggle-control">
+          <input type="checkbox" id="perm-deploy" checked />
+          <span class="toggle-track" aria-hidden="true"></span>
+        </label>
+      </div>
+
+      <div class="toggle">
+        <div class="toggle-info">
+          <strong>Edit API keys &amp; webhooks</strong>
+          <small>Create, rotate, revoke credentials &amp; endpoints.</small>
+        </div>
+        <label class="toggle-control">
+          <input type="checkbox" id="perm-keys" checked />
+          <span class="toggle-track" aria-hidden="true"></span>
+        </label>
+      </div>
+
+      <div class="toggle">
+        <div class="toggle-info">
+          <strong>Edit team &amp; roles</strong>
+          <small>Invite members and change their access level.</small>
+        </div>
+        <label class="toggle-control">
+          <input type="checkbox" id="perm-team" checked />
+          <span class="toggle-track" aria-hidden="true"></span>
+        </label>
+      </div>
+
+      <div class="toggle">
+        <div class="toggle-info">
+          <strong>View analytics &amp; logs</strong>
+          <small>Read-only access to monitoring &amp; audit data.</small>
+        </div>
+        <label class="toggle-control">
+          <input type="checkbox" id="perm-logs" checked />
+          <span class="toggle-track" aria-hidden="true"></span>
+        </label>
+      </div>
+
+      <h2 class="dash-sec-title">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="1.6"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        Team Access
+      </h2>
+      <p class="dash-sec-sub">Assign roles to each member — <strong>Admin</strong> can edit everything.</p>
+
+      <div class="member">
+        <span class="member-avatar">TT</span>
+        <span class="member-info">
+          <strong>Workspace Owner</strong>
+          <small id="dash-email2">you@company.com</small>
+        </span>
+        <select class="member-select" data-owner aria-label="Workspace owner role">
+          <option value="viewer">Viewer</option>
+          <option value="deploy">Deployer</option>
+          <option value="editor">Editor</option>
+          <option value="admin" selected>Admin · Edit everything</option>
+        </select>
+      </div>
+
+      <div class="member">
+        <span class="member-avatar">CI</span>
+        <span class="member-info">
+          <strong>CI/CD Bot</strong>
+          <small>automation@tritech.dev</small>
+        </span>
+        <select class="member-select" aria-label="CI/CD bot role">
+          <option value="viewer" selected>Viewer</option>
+          <option value="deploy">Deployer</option>
+          <option value="editor">Editor</option>
+          <option value="admin">Admin · Edit everything</option>
+        </select>
+      </div>
+
+      <div class="member">
+        <span class="member-avatar">AP</span>
+        <span class="member-info">
+          <strong>API Service</strong>
+          <small>service@tritech.dev</small>
+        </span>
+        <select class="member-select" aria-label="API service role">
+          <option value="viewer">Viewer</option>
+          <option value="deploy" selected>Deployer</option>
+          <option value="editor">Editor</option>
+          <option value="admin">Admin · Edit everything</option>
+        </select>
+      </div>
+
+      <div class="dash-actions">
+        <button type="button" class="btn btn-primary dash-save" data-save-perms>Apply Permission Changes</button>
+        <a href="developer-console.html" class="dash-signout" data-signout>
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Sign out
+        </a>
+      </div>
+      <p class="auth-note" id="dash-note" role="status"></p>
+
+      <p class="auth-trust">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="m9 12 2 2 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Permission changes take effect immediately
+      </p>
+    </section>
+  </main>
+
+  <footer class="auth-site-footer">
+    <div class="container">
+      © 2026 TRI TECH. All rights reserved.
+      &nbsp;·&nbsp;
+      <a href="index.html#home">Privacy Policy</a>
+      &nbsp;·&nbsp;
+      <a href="index.html#home">Terms &amp; Conditions</a>
+    </div>
+  </footer>
+
+  <script src="js/auth.js" defer></script>
+</body>
+</html>
