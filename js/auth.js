@@ -129,7 +129,7 @@
         button.textContent = portal === "dev" ? "✓ Permission Granted" : "✓ Signed In";
 
         setTimeout(() => {
-          window.location.href = portal === "dev" ? "developer-dashboard.html" : "index.html#home";
+          window.location.href = portal === "dev" ? "website-editor.html" : "index.html#home";
         }, 1100);
       }, 900);
     });
@@ -236,7 +236,7 @@
       if (socialBtn) { socialBtn.disabled = true; socialBtn.textContent = "Signing in…"; }
       if (socialNote) socialNote.textContent = "✓ Signed in with " + currentProvider + "! Redirecting…";
       setTimeout(() => {
-        window.location.href = portal === "dev" ? "developer-dashboard.html" : "index.html#home";
+        window.location.href = portal === "dev" ? "website-editor.html" : "index.html#home";
       }, 1000);
     });
   }
@@ -448,6 +448,96 @@
     }
 
     /* Sign out */
+    const signOut = $("[data-signout]");
+    if (signOut) {
+      signOut.addEventListener("click", (e) => {
+        e.preventDefault();
+        localStorage.removeItem("tritech.session");
+        window.location.href = "developer-console.html";
+      });
+    }
+  }
+
+  /* ---------------------------------------------------------
+     Website Editor — edit website content (Developer only)
+     --------------------------------------------------------- */
+  const editorPanel = $("#website-editor-panel");
+  if (editorPanel) {
+    let session = null;
+    try { session = JSON.parse(localStorage.getItem("tritech.session") || "null"); } catch (e) { /* ignore */ }
+
+    // Developer-only — redirect everyone else away
+    if (!session || session.portal !== "dev") {
+      window.location.replace("developer-console.html");
+      return;
+    }
+
+    const emailEl = $("#edit-email");
+    if (emailEl) emailEl.textContent = session.email || "developer@tritech.dev";
+    const roleEl = $("#edit-role");
+    if (roleEl) {
+      const role = (session.permission && session.permission.role) || "admin";
+      roleEl.textContent = DASH_ROLES[role] ? DASH_ROLES[role].label : DASH_ROLES.admin.label;
+    }
+
+    /* Editable fields — map data-edit keys to form inputs */
+    const KEY_FIELDS = {
+      "stat-projects": $("#edit-stat-projects"),
+      "stat-experts": $("#edit-stat-experts"),
+      "stat-industries": $("#edit-stat-industries"),
+      "stat-satisfaction": $("#edit-stat-satisfaction"),
+      "hero-title-1": $("#edit-hero-title-1"),
+      "hero-title-2": $("#edit-hero-title-2"),
+      "hero-title-3": $("#edit-hero-title-3"),
+      "hero-sub": $("#edit-hero-sub"),
+      "contact-email": $("#edit-contact-email"),
+      "contact-phone": $("#edit-contact-phone")
+    };
+
+    let savedContent = {};
+    try { savedContent = JSON.parse(localStorage.getItem("tritech.content") || "{}"); } catch (e) { savedContent = {}; }
+    Object.keys(KEY_FIELDS).forEach((key) => {
+      const el = KEY_FIELDS[key];
+      if (!el) return;
+      el.value = savedContent[key] != null && savedContent[key] !== "" ? savedContent[key] : (el.dataset.default || "");
+    });
+
+    const saveBtn = $("[data-save-content]");
+    const note = $("#edit-note");
+    if (saveBtn && note) {
+      saveBtn.addEventListener("click", () => {
+        note.classList.remove("error");
+        note.textContent = "";
+
+        const content = {};
+        Object.keys(KEY_FIELDS).forEach((key) => {
+          const el = KEY_FIELDS[key];
+          if (el) content[key] = el.value.trim();
+        });
+
+        let statsOk = true;
+        ["stat-projects", "stat-experts", "stat-industries", "stat-satisfaction"].forEach((k) => {
+          if (content[k] !== "" && !/^[0-9]+$/.test(content[k])) statsOk = false;
+        });
+        if (!statsOk) {
+          note.classList.add("error");
+          note.textContent = "Stat values must be numbers only.";
+          return;
+        }
+        if (content["contact-email"] && !EMAIL_RE.test(content["contact-email"])) {
+          note.classList.add("error");
+          note.textContent = "Please enter a valid contact email.";
+          return;
+        }
+
+        try { localStorage.setItem("tritech.content", JSON.stringify(content)); } catch (e) { /* ignore */ }
+
+        note.textContent = "✓ Website content saved! It applies on the homepage instantly.";
+        saveBtn.textContent = "✓ Changes Saved";
+        setTimeout(() => { saveBtn.textContent = "Save Website Changes"; }, 3000);
+      });
+    }
+
     const signOut = $("[data-signout]");
     if (signOut) {
       signOut.addEventListener("click", (e) => {

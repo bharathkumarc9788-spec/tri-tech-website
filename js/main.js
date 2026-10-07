@@ -14,6 +14,37 @@
   const raf = (fn) => window.requestAnimationFrame(fn);
 
   /* ---------------------------------------------------------
+     Website content overrides — applied from the Developer Editor
+     --------------------------------------------------------- */
+  function applySiteContent() {
+    try {
+      const content = JSON.parse(localStorage.getItem("tritech.content") || "null");
+      if (!content) return;
+      Object.keys(content).forEach((key) => {
+        const val = String(content[key]).trim();
+        if (!val) return;
+        $$('[data-edit="' + key + '"]').forEach((el) => {
+          const href = el.getAttribute("href") || "";
+          if (href.startsWith("mailto:")) {
+            el.textContent = val;
+            el.setAttribute("href", "mailto:" + val);
+          } else if (href.startsWith("tel:")) {
+            el.textContent = val;
+            el.setAttribute("href", "tel:" + val.replace(/[^0-9+]/g, ""));
+          } else if (el.classList && el.classList.contains("counter")) {
+            const n = parseInt(val.replace(/[^0-9]/g, ""), 10) || 0;
+            el.dataset.count = String(n);
+            el.textContent = n;
+          } else {
+            el.textContent = val;
+          }
+        });
+      });
+    } catch (e) { /* ignore */ }
+  }
+  applySiteContent();
+
+  /* ---------------------------------------------------------
      Preloader
      --------------------------------------------------------- */
   const preloader = $("#preloader");
