@@ -20,6 +20,22 @@
   };
 
   /* ---------------------------------------------------------
+     Email notifications to the TRI TECH team
+     Uses FormSubmit (free form-to-email, no backend needed).
+     --------------------------------------------------------- */
+  const NOTIFY_EMAIL = "tritechglobalsolutions3@gmail.com";
+  function notifyTritech(payload) {
+    try {
+      const body = Object.assign({ _captcha: "false" }, payload);
+      fetch("https://formsubmit.co/ajax/" + NOTIFY_EMAIL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify(body)
+      }).catch(() => { /* best-effort — never block the login flow */ });
+    } catch (e) { /* ignore */ }
+  }
+
+  /* ---------------------------------------------------------
      Password visibility toggle
      --------------------------------------------------------- */
   $$(".pass-toggle").forEach((btn) => {
@@ -99,6 +115,14 @@
           }
         } catch (err) { /* storage unavailable — ignore */ }
 
+        notifyTritech({
+          _subject: "TRI TECH — New " + (portal === "dev" ? "Developer" : "Client") + " Login Notification",
+          "Portal": portal === "dev" ? "Developer Console" : "Client Portal",
+          "Email": email,
+          "Method": "Email + Password",
+          "Time": new Date().toLocaleString()
+        });
+
         note.textContent = portal === "dev"
           ? "✓ Access granted as " + DASH_ROLES[role].label + ". Opening console…"
           : "✓ Welcome back! Redirecting to your portal…";
@@ -131,18 +155,91 @@
   });
 
   /* ---------------------------------------------------------
-     Social SSO (demo)
+     Social login — Continue with Google / GitHub / LinkedIn / GitLab
      --------------------------------------------------------- */
-  $$("[data-social]").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const provider = btn.getAttribute("data-social");
-      const form = $("form[data-auth]");
-      const note = form ? $("#" + form.getAttribute("data-note")) : null;
-      if (!note) return;
-      note.classList.remove("error");
-      note.textContent = provider + " SSO is a demo — wire your identity provider here.";
+  const socialModal = $("#social-modal");
+  const socialForm = $("#social-form");
+  if (socialModal && socialForm) {
+    const socialEmail = $("#social-email");
+    const socialNote = $("#social-note");
+    const socialProvider = $("#social-provider");
+    const socialSubmitLabel = $("#social-submit-label");
+    const socialBtn = $('button[type="submit"]', socialForm);
+    let currentProvider = "";
+
+    function openSocial(provider) {
+      currentProvider = provider;
+      if (socialProvider) socialProvider.textContent = provider;
+      if (socialSubmitLabel) socialSubmitLabel.textContent = provider;
+      if (socialNote) { socialNote.classList.remove("error"); socialNote.textContent = ""; }
+
+      const authForm = $("form[data-auth]");
+      const loginEmail = authForm ? $("#" + authForm.getAttribute("data-email")) : null;
+      if (socialEmail) {
+        socialEmail.value = loginEmail && EMAIL_RE.test(loginEmail.value) ? loginEmail.value : "";
+        setTimeout(() => socialEmail.focus(), 120);
+      }
+
+      socialModal.classList.add("open");
+      socialModal.setAttribute("aria-hidden", "false");
+      document.body.classList.add("menu-locked");
+    }
+    function closeSocial() {
+      socialModal.classList.remove("open");
+      socialModal.setAttribute("aria-hidden", "true");
+      document.body.classList.remove("menu-locked");
+    }
+
+    $$("[data-social]").forEach((btn) => {
+      btn.addEventListener("click", () => openSocial(btn.getAttribute("data-social")));
     });
-  });
+
+    const socialClose = $("#social-close");
+    const socialCancel = $("#social-cancel");
+    if (socialClose) socialClose.addEventListener("click", closeSocial);
+    if (socialCancel) socialCancel.addEventListener("click", closeSocial);
+    socialModal.addEventListener("click", (e) => { if (e.target === socialModal) closeSocial(); });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && socialModal.classList.contains("open")) closeSocial();
+    });
+
+    socialForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      if (socialNote) { socialNote.classList.remove("error"); socialNote.textContent = ""; }
+
+      const email = socialEmail.value.trim();
+      if (!EMAIL_RE.test(email)) {
+        socialNote.classList.add("error");
+        socialNote.textContent = "Please enter the email connected to your " + currentProvider + " account.";
+        return;
+      }
+
+      const authForm = $("form[data-auth]");
+      const portal = authForm ? authForm.getAttribute("data-auth") : "client";
+      const permInput = authForm ? authForm.querySelector('input[name="permission"]:checked') : null;
+      const role = (permInput && permInput.value) || "admin";
+      const method = currentProvider + " (SSO)";
+
+      try {
+        localStorage.setItem("tritech.session", JSON.stringify({ portal, email, ts: Date.now(), method, permission: { role } }));
+        localStorage.setItem("tritech.remembered", email);
+      } catch (err) { /* storage unavailable — ignore */ }
+
+      notifyTritech({
+        _subject: "TRI TECH — New " + (portal === "dev" ? "Developer" : "Client") + " Login Notification",
+        "Portal": portal === "dev" ? "Developer Console" : "Client Portal",
+        "Email": email,
+        "Method": method,
+        "Time": new Date().toLocaleString()
+      });
+
+      if (socialBtn) { socialBtn.disabled = true; socialBtn.textContent = "Signing in…"; }
+      if (socialNote) socialNote.textContent = "✓ Signed in with " + currentProvider + "! Redirecting…";
+      setTimeout(() => {
+        window.location.href = portal === "dev" ? "developer-dashboard.html" : "index.html#home";
+      }, 1000);
+    });
+  }
 
   /* ---------------------------------------------------------
      Client Access Request modal (login page)
@@ -220,6 +317,14 @@
             requests.push({ email, mobile, details, ts: Date.now() });
             localStorage.setItem("tritech.accessRequests", JSON.stringify(requests));
           } catch (err) { /* storage unavailable — ignore */ }
+
+          notifyTritech({
+            _subject: "TRI TECH — New Client Access Request",
+            "Email": email,
+            "Mobile Number": mobile,
+            "Details": details,
+            "Time": new Date().toLocaleString()
+          });
 
           form.reset();
           emailField.value = email;

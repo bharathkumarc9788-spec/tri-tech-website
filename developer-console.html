@@ -193,6 +193,37 @@
     </div>
   </footer>
 
+  <!-- ============ SOCIAL LOGIN MODAL ============ -->
+  <div class="modal-overlay" id="social-modal" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="social-title">
+      <div class="modal-head">
+        <div>
+          <h2 class="modal-title" id="social-title">Continue with <span id="social-provider">GitHub</span></h2>
+          <p class="auth-sub">Enter the email connected to this account to sign in.</p>
+        </div>
+        <button type="button" class="modal-close" id="social-close" aria-label="Close">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+
+      <form id="social-form" novalidate>
+        <div class="field">
+          <label for="social-email">Email ID</label>
+          <div class="field-control">
+            <svg class="field-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="m22 7-10 6L2 7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <input type="email" id="social-email" name="email" placeholder="dev@yourcompany.com" autocomplete="email" data-remembered required />
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary auth-submit" id="social-submit">Sign In with <span id="social-submit-label">GitHub</span> →</button>
+        <p class="auth-note" id="social-note" role="status"></p>
+      </form>
+
+      <div class="modal-foot">
+        <button type="button" class="dash-signout" id="social-cancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+
   <script src="js/auth.js" defer></script>
 </body>
 </html>

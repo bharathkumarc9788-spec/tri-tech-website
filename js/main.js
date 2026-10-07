@@ -284,7 +284,8 @@
      --------------------------------------------------------- */
   function animateCounter(el) {
     const target = parseInt(el.dataset.count, 10) || 0;
-    const duration = 1700;
+    const duration = prefersReducedMotion ? 1 : 1700;
+    el.dataset.animated = "1";
     const start = performance.now();
 
     function frame(now) {
@@ -307,9 +308,17 @@
         counterObserver.unobserve(item);
       }
     });
-  }, { threshold: 0.5 });
+  }, { threshold: 0.35, rootMargin: "0px 0px -40px 0px" });
 
   $$(".stat-item").forEach((item) => counterObserver.observe(item));
+
+  // Safety fallback — if a counter never animated (observer blocked, etc.),
+  // snap it to its target so it never stays stuck at 0.
+  setTimeout(() => {
+    $$(".counter").forEach((el) => {
+      if (!el.dataset.animated) el.textContent = el.dataset.count || el.textContent;
+    });
+  }, 7000);
 
   /* ---------------------------------------------------------
      Testimonial carousel
