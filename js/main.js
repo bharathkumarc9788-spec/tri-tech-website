@@ -496,19 +496,20 @@
       note.classList.remove("error");
       note.textContent = "";
 
+      const button = $('button[type="submit"]', form);
+      const original = button.textContent;
+
       const name = $("#cf-name").value.trim();
       const email = $("#cf-email").value.trim();
       const service = $("#cf-service").value;
       const message = $("#cf-message").value.trim();
-      const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+      const emailOk = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$/.test(email);
 
       if (!name) return fail("Please enter your full name.");
       if (!email || !emailOk) return fail("Please enter a valid business email.");
       if (!service) return fail("Please select a service.");
       if (!message) return fail("Please tell us a little about your project.");
 
-      const button = $('button[type="submit"]', form);
-      const original = button.textContent;
       button.textContent = "Sending…";
       button.disabled = true;
 

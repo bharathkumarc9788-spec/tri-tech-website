@@ -9,7 +9,25 @@
   const $ = (sel, ctx) => (ctx || document).querySelector(sel);
   const $$ = (sel, ctx) => Array.from((ctx || document).querySelectorAll(sel));
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  // Strict email validation — only valid email addresses pass.
+  // Requires: local@domain.tld with a 2+ letter top-level domain, no leading/
+  // trailing/consecutive dots, reasonable length.
+  const EMAIL_RE = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$/;
+  function isValidEmail(email) {
+    if (typeof email !== "string") return false;
+    const s = email.trim();
+    if (s.length < 6 || s.length > 254) return false;
+    if (!EMAIL_RE.test(s)) return false;
+    const parts = s.split("@");
+    if (parts.length !== 2) return false;
+    const local = parts[0];
+    const domain = parts[1];
+    if (!local || !domain) return false;
+    if (local.length > 64) return false;
+    if (local.startsWith(".") || local.endsWith(".") || local.includes("..")) return false;
+    if (domain.startsWith(".") || domain.endsWith(".") || domain.includes("..")) return false;
+    return true;
+  }
 
   /* Role labels for the Developer Console */
   const DASH_ROLES = {
@@ -97,7 +115,7 @@
       const role = (permInput && permInput.value) || "admin";
 
       if (!email) return fail("Please enter your email or username.");
-      if (!EMAIL_RE.test(email)) return fail("Please enter a valid email address.");
+      if (!isValidEmail(email)) return fail("Please enter a valid email address.");
       if (!pass) return fail("Please enter your password.");
       if (pass.length < 6) return fail("Password must be at least 6 characters.");
 
@@ -148,7 +166,7 @@
       if (!note || !emailInput) return;
       const email = emailInput.value.trim();
       note.classList.remove("error");
-      note.textContent = email && EMAIL_RE.test(email)
+      note.textContent = email && isValidEmail(email)
         ? "✓ Reset link sent to " + email + " (demo)"
         : "Enter your email above, then we'll send a reset link (demo).";
     });
@@ -176,7 +194,7 @@
       const authForm = $("form[data-auth]");
       const loginEmail = authForm ? $("#" + authForm.getAttribute("data-email")) : null;
       if (socialEmail) {
-        socialEmail.value = loginEmail && EMAIL_RE.test(loginEmail.value) ? loginEmail.value : "";
+        socialEmail.value = loginEmail && isValidEmail(loginEmail.value) ? loginEmail.value : "";
         setTimeout(() => socialEmail.focus(), 120);
       }
 
@@ -208,7 +226,7 @@
       if (socialNote) { socialNote.classList.remove("error"); socialNote.textContent = ""; }
 
       const email = socialEmail.value.trim();
-      if (!EMAIL_RE.test(email)) {
+      if (!isValidEmail(email)) {
         socialNote.classList.add("error");
         socialNote.textContent = "Please enter the email connected to your " + currentProvider + " account.";
         return;
@@ -291,7 +309,7 @@
         const mobile = mobileField.value.trim();
         const details = detailsField.value.trim();
 
-        if (!EMAIL_RE.test(email)) {
+        if (!isValidEmail(email)) {
           note.classList.add("error");
           note.textContent = "Please enter a valid email address.";
           return;
@@ -524,7 +542,7 @@
           note.textContent = "Stat values must be numbers only.";
           return;
         }
-        if (content["contact-email"] && !EMAIL_RE.test(content["contact-email"])) {
+        if (content["contact-email"] && !isValidEmail(content["contact-email"])) {
           note.classList.add("error");
           note.textContent = "Please enter a valid contact email.";
           return;
