@@ -76,25 +76,6 @@
     } catch (e) { return false; }
   }
 
-  /* Client login gate — only approved emails may sign in */
-  async function checkApproval(email) {
-    const normalized = email.trim().toLowerCase();
-    const approved = await kvGet("approved");
-    if (approved === null) {
-      return { ok: false, message: "⚠️ Access approval is not available yet. Please contact TRI TECH to activate your account." };
-    }
-    const approvedList = Array.isArray(approved) ? approved.map((e) => String(e).toLowerCase()) : [];
-    if (approvedList.includes(normalized)) return { ok: true };
-
-    const requests = await kvGet("requests");
-    const reqList = Array.isArray(requests) ? requests : [];
-    const hasPending = reqList.some((r) => r && String(r.email).toLowerCase() === normalized && r.status !== "rejected");
-    if (hasPending) {
-      return { ok: false, message: "⏳ Your access request is pending approval. TRI TECH will activate your account once approved." };
-    }
-    return { ok: false, message: "⚠️ No approved access found for this email. Please submit a Client Access Request first.", openRequest: true };
-  }
-
   /* ---------------------------------------------------------
      Password visibility toggle
      --------------------------------------------------------- */
@@ -160,16 +141,6 @@
       if (!isValidEmail(email)) return fail("Please enter a valid email address.");
       if (!pass) return fail("Please enter your password.");
       if (pass.length < 6) return fail("Password must be at least 6 characters.");
-
-      // Client portal: only admin-approved emails may sign in
-      if (portal === "client") {
-        const gate = await checkApproval(email);
-        if (!gate.ok) {
-          fail(gate.message);
-          if (gate.openRequest && openAccessRequestModal) openAccessRequestModal();
-          return;
-        }
-      }
 
       const original = button.textContent;
       button.disabled = true;
@@ -289,17 +260,6 @@
       const permInput = authForm ? authForm.querySelector('input[name="permission"]:checked') : null;
       const role = (permInput && permInput.value) || "admin";
       const method = currentProvider + " (SSO)";
-
-      // Client portal: only admin-approved emails may sign in
-      if (portal === "client") {
-        const gate = await checkApproval(email);
-        if (!gate.ok) {
-          socialNote.classList.add("error");
-          socialNote.textContent = gate.message;
-          if (gate.openRequest && openAccessRequestModal) openAccessRequestModal();
-          return;
-        }
-      }
 
       try {
         localStorage.setItem("tritech.session", JSON.stringify({ portal, email, ts: Date.now(), method, permission: { role } }));
