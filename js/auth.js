@@ -54,6 +54,48 @@
   }
 
   /* ---------------------------------------------------------
+     Shared approval store (kvdb.io — free, no signup)
+     Holds approved emails + pending client access requests so
+     approvals work across different devices/browsers.
+     --------------------------------------------------------- */
+  const KVDB_BUCKET = "SbmH9MGMJUno6rGGhboHJ7";
+  const KVDB = "https://kvdb.io/" + KVDB_BUCKET;
+
+  async function kvGet(key) {
+    try {
+      const res = await fetch(KVDB + "/" + key, { headers: { Accept: "text/plain" } });
+      if (!res.ok) return null;
+      const text = await res.text();
+      try { return JSON.parse(text); } catch (e) { return null; }
+    } catch (e) { return null; }
+  }
+  async function kvSet(key, value) {
+    try {
+      const res = await fetch(KVDB + "/" + key, { method: "PUT", body: JSON.stringify(value) });
+      return res.ok;
+    } catch (e) { return false; }
+  }
+
+  /* Client login gate — only approved emails may sign in */
+  async function checkApproval(email) {
+    const normalized = email.trim().toLowerCase();
+    const approved = await kvGet("approved");
+    if (approved === null) {
+      return { ok: false, message: "Approval service is unreachable — please try again in a moment." };
+    }
+    const approvedList = Array.isArray(approved) ? approved.map((e) => String(e).toLowerCase()) : [];
+    if (approvedList.includes(normalized)) return { ok: true };
+
+    const requests = await kvGet("requests");
+    const reqList = Array.isArray(requests) ? requests : [];
+    const hasPending = reqList.some((r) => r && String(r.email).toLowerCase() === normalized && r.status !== "rejected");
+    if (hasPending) {
+      return { ok: false, message: "⏳ Your access request is pending approval. TRI TECH will activate your account once approved." };
+    }
+    return { ok: false, message: "⚠️ No approved access found for this email. Please submit a Client Access Request first.", openRequest: true };
+  }
+
+  /* ---------------------------------------------------------
      Password visibility toggle
      --------------------------------------------------------- */
   $$(".pass-toggle").forEach((btn) => {
@@ -104,7 +146,7 @@
       }
     }
 
-    form.addEventListener("submit", (e) => {
+    form.addEventListener("submit", async (e) => {
       e.preventDefault();
       note.classList.remove("error");
       note.textContent = "";
@@ -118,6 +160,16 @@
       if (!isValidEmail(email)) return fail("Please enter a valid email address.");
       if (!pass) return fail("Please enter your password.");
       if (pass.length < 6) return fail("Password must be at least 6 characters.");
+
+      // Client portal: only admin-approved emails may sign in
+      if (portal === "client") {
+        const gate = await checkApproval(email);
+        if (!gate.ok) {
+          fail(gate.message);
+          if (gate.openRequest && openAccessRequestModal) openAccessRequestModal();
+          return;
+        }
+      }
 
       const original = button.textContent;
       button.disabled = true;
@@ -221,7 +273,7 @@
       if (e.key === "Escape" && socialModal.classList.contains("open")) closeSocial();
     });
 
-    socialForm.addEventListener("submit", (e) => {
+    socialForm.addEventListener("submit", async (e) => {
       e.preventDefault();
       if (socialNote) { socialNote.classList.remove("error"); socialNote.textContent = ""; }
 
@@ -237,6 +289,17 @@
       const permInput = authForm ? authForm.querySelector('input[name="permission"]:checked') : null;
       const role = (permInput && permInput.value) || "admin";
       const method = currentProvider + " (SSO)";
+
+      // Client portal: only admin-approved emails may sign in
+      if (portal === "client") {
+        const gate = await checkApproval(email);
+        if (!gate.ok) {
+          socialNote.classList.add("error");
+          socialNote.textContent = gate.message;
+          if (gate.openRequest && openAccessRequestModal) openAccessRequestModal();
+          return;
+        }
+      }
 
       try {
         localStorage.setItem("tritech.session", JSON.stringify({ portal, email, ts: Date.now(), method, permission: { role } }));
@@ -262,6 +325,7 @@
   /* ---------------------------------------------------------
      Client Access Request modal (login page)
      --------------------------------------------------------- */
+  let openAccessRequestModal = null;
   const accessModal = $("#access-modal");
   if (accessModal) {
     const trigger = $("[data-open-access]");
@@ -283,6 +347,7 @@
       }
       setTimeout(() => { if (emailField) emailField.focus(); }, 120);
     }
+    openAccessRequestModal = openModal;
     function closeModal() {
       accessModal.classList.remove("open");
       accessModal.setAttribute("aria-hidden", "true");
@@ -300,7 +365,7 @@
     });
 
     if (form) {
-      form.addEventListener("submit", (e) => {
+      form.addEventListener("submit", async (e) => {
         e.preventDefault();
         note.classList.remove("error");
         note.textContent = "";
@@ -329,32 +394,34 @@
         btn.disabled = true;
         btn.textContent = "Submitting…";
 
+        // Store the request in the shared approval store + email the admin
+        let stored = false;
+        try {
+          const list = (await kvGet("requests")) || [];
+          list.push({ email, mobile, details, ts: Date.now(), status: "pending" });
+          stored = await kvSet("requests", list);
+        } catch (err) { /* ignore */ }
+
+        notifyTritech({
+          _subject: "TRI TECH — New Client Access Request",
+          "Email": email,
+          "Mobile Number": mobile,
+          "Details": details,
+          "Time": new Date().toLocaleString()
+        });
+
+        form.reset();
+        emailField.value = email;
+        note.textContent = stored
+          ? "✓ Request submitted! You can log in once TRI TECH approves your access."
+          : "✓ Request submitted! (Approval sync pending — our team will email you.)";
+        btn.textContent = "✓ Request Sent";
+        btn.disabled = false;
+        setTimeout(closeModal, 2400);
         setTimeout(() => {
-          try {
-            const requests = JSON.parse(localStorage.getItem("tritech.accessRequests") || "[]");
-            requests.push({ email, mobile, details, ts: Date.now() });
-            localStorage.setItem("tritech.accessRequests", JSON.stringify(requests));
-          } catch (err) { /* storage unavailable — ignore */ }
-
-          notifyTritech({
-            _subject: "TRI TECH — New Client Access Request",
-            "Email": email,
-            "Mobile Number": mobile,
-            "Details": details,
-            "Time": new Date().toLocaleString()
-          });
-
-          form.reset();
-          emailField.value = email;
-          note.textContent = "✓ Request submitted! Our team will contact you within 24 hours.";
-          btn.textContent = "✓ Request Sent";
-          btn.disabled = false;
-          setTimeout(closeModal, 2400);
-          setTimeout(() => {
-            note.textContent = "";
-            btn.textContent = "Submit Request →";
-          }, 4000);
-        }, 900);
+          note.textContent = "";
+          btn.textContent = "Submit Request →";
+        }, 4000);
       });
     }
   }
@@ -564,5 +631,138 @@
         window.location.href = "developer-console.html";
       });
     }
+  }
+
+  /* ---------------------------------------------------------
+     Admin — Client Access Approvals (Developer only)
+     --------------------------------------------------------- */
+  const approvalsPanel = $("#approvals-panel");
+  if (approvalsPanel) {
+    let session = null;
+    try { session = JSON.parse(localStorage.getItem("tritech.session") || "null"); } catch (e) { /* ignore */ }
+    if (!session || session.portal !== "dev") {
+      window.location.replace("developer-console.html");
+      return;
+    }
+
+    const emailEl = $("#ap-email");
+    if (emailEl) emailEl.textContent = session.email || "developer@tritech.dev";
+
+    function esc(s) {
+      return String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    }
+
+    let approved = [];
+    let requests = [];
+
+    async function load() {
+      const a = await kvGet("approved");
+      if (Array.isArray(a)) approved = a;
+      const r = await kvGet("requests");
+      if (Array.isArray(r)) requests = r;
+      render();
+    }
+
+    function render() {
+      const pendingWrap = $("#ap-pending");
+      const approvedWrap = $("#ap-approved");
+      if (!pendingWrap || !approvedWrap) return;
+
+      const pending = requests.filter((x) => x && x.status !== "rejected");
+      pendingWrap.innerHTML = pending.length
+        ? ""
+        : '<p class="ap-empty">No pending access requests.</p>';
+      pending.forEach((req) => {
+        const row = document.createElement("div");
+        row.className = "member";
+        row.innerHTML =
+          '<span class="member-avatar">' + esc((req.email || "?").slice(0, 2).toUpperCase()) + "</span>" +
+          '<span class="member-info"><strong>' + esc(req.email) + "</strong>" +
+          "<small>" + esc(req.mobile || "") + " · " + esc(req.details || "") + " · " + new Date(req.ts).toLocaleString() + "</small></span>" +
+          '<span class="ap-actions">' +
+          '<button class="btn btn-primary btn-sm" data-approve="' + encodeURIComponent(req.email) + '">Approve ✓</button>' +
+          '<button class="btn btn-ghost btn-sm" data-reject="' + encodeURIComponent(req.email) + '">Reject</button>' +
+          "</span>";
+        pendingWrap.appendChild(row);
+      });
+
+      approvedWrap.innerHTML = approved.length
+        ? ""
+        : '<p class="ap-empty">No approved emails yet.</p>';
+      approved.forEach((em) => {
+        const row = document.createElement("div");
+        row.className = "member";
+        row.innerHTML =
+          '<span class="member-avatar">' + esc(em.slice(0, 2).toUpperCase()) + "</span>" +
+          '<span class="member-info"><strong>' + esc(em) + "</strong><small>Approved — can log in</small></span>" +
+          '<button class="btn btn-ghost btn-sm" data-revoke="' + encodeURIComponent(em) + '">Revoke</button>';
+        approvedWrap.appendChild(row);
+      });
+
+      pendingWrap.querySelectorAll("[data-approve]").forEach((b) => {
+        b.addEventListener("click", () => setStatus(decodeURIComponent(b.getAttribute("data-approve")), "approved"));
+      });
+      pendingWrap.querySelectorAll("[data-reject]").forEach((b) => {
+        b.addEventListener("click", () => setStatus(decodeURIComponent(b.getAttribute("data-reject")), "rejected"));
+      });
+      approvedWrap.querySelectorAll("[data-revoke]").forEach((b) => {
+        b.addEventListener("click", () => revoke(decodeURIComponent(b.getAttribute("data-revoke"))));
+      });
+    }
+
+    async function save() {
+      const okA = await kvSet("approved", approved);
+      const okR = await kvSet("requests", requests);
+      const note = $("#ap-note");
+      if (note) {
+        note.classList.toggle("error", !(okA && okR));
+        note.textContent = okA && okR
+          ? "✓ Changes saved — approvals synced. Clients can now log in."
+          : "Approval service unreachable — please activate kvdb.io and try again.";
+      }
+      render();
+    }
+
+    async function setStatus(email, status) {
+      requests = requests.map((r) =>
+        String(r.email).toLowerCase() === email.toLowerCase() ? Object.assign({}, r, { status }) : r
+      );
+      if (status === "approved" && !approved.some((e) => e.toLowerCase() === email.toLowerCase())) {
+        approved.push(email);
+      }
+      await save();
+    }
+
+    async function revoke(email) {
+      approved = approved.filter((e) => e.toLowerCase() !== email.toLowerCase());
+      await save();
+    }
+
+    const addBtn = $("#ap-add");
+    const addInput = $("#ap-add-email");
+    if (addBtn && addInput) {
+      addBtn.addEventListener("click", async () => {
+        const em = addInput.value.trim().toLowerCase();
+        const note = $("#ap-note");
+        if (!isValidEmail(em)) {
+          if (note) { note.classList.add("error"); note.textContent = "Please enter a valid email address."; }
+          return;
+        }
+        if (!approved.some((e) => e.toLowerCase() === em)) approved.push(em);
+        addInput.value = "";
+        await save();
+      });
+    }
+
+    const signOut = $("[data-signout]");
+    if (signOut) {
+      signOut.addEventListener("click", (e) => {
+        e.preventDefault();
+        localStorage.removeItem("tritech.session");
+        window.location.href = "developer-console.html";
+      });
+    }
+
+    load();
   }
 })();
