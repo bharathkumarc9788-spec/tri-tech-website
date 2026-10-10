@@ -81,7 +81,7 @@
     const normalized = email.trim().toLowerCase();
     const approved = await kvGet("approved");
     if (approved === null) {
-      return { ok: false, message: "Approval service is unreachable — please try again in a moment." };
+      return { ok: false, message: "⚠️ Access approval is not available yet. Please contact TRI TECH to activate your account." };
     }
     const approvedList = Array.isArray(approved) ? approved.map((e) => String(e).toLowerCase()) : [];
     if (approvedList.includes(normalized)) return { ok: true };
@@ -718,7 +718,7 @@
         note.classList.toggle("error", !(okA && okR));
         note.textContent = okA && okR
           ? "✓ Changes saved — approvals synced. Clients can now log in."
-          : "Approval service unreachable — please activate kvdb.io and try again.";
+          : "⚠️ Approvals could not be synced. Please activate the approval service (kvdb.io) in your email and try again.";
       }
       render();
     }
