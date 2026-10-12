@@ -104,18 +104,30 @@
   } catch (e) { /* storage unavailable — ignore */ }
 
   /* ---------------------------------------------------------
-     Form submit (demo authentication)
+     OTP login — email verification
      --------------------------------------------------------- */
+  const OTP_GAS_URL = ""; // Optional: paste a Google Apps Script web-app URL
+                         // here to email OTPs to users for real (see notes).
+
   $$("form[data-auth]").forEach((form) => {
     const portal = form.getAttribute("data-auth");
     const emailInput = $("#" + form.getAttribute("data-email"));
-    const passInput = $("#" + form.getAttribute("data-pass"));
     const note = $("#" + form.getAttribute("data-note"));
     const remember = $('input[type="checkbox"]', form);
-    const button = $('button[type="submit"]', form);
     const card = form.closest(".auth-card");
+    const otpRow = form.querySelector(".otp-row");
+    const otpInput = form.querySelector(".otp-input");
+    const sendBtn = form.querySelector("[data-send-otp]");
+    const verifyBtn = form.querySelector("[data-verify-otp]");
+    const resendBtn = form.querySelector("[data-resend-otp]");
+    const otpTimer = form.querySelector(".otp-timer");
+    const otpEmailLabel = form.querySelector(".otp-sent strong");
+    const demoOtp = form.querySelector("[data-demo-otp]");
 
-    if (!emailInput || !passInput || !note || !button) return;
+    if (!emailInput || !note || !otpRow || !otpInput || !sendBtn || !verifyBtn) return;
+
+    let currentOtp = "";
+    let otpExpiry = 0;
 
     function fail(msg) {
       note.textContent = msg;
@@ -127,53 +139,106 @@
       }
     }
 
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
+    function deliverOtp(email, otp) {
+      if (OTP_GAS_URL) {
+        try {
+          return fetch(OTP_GAS_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: email, otp: otp })
+          }).then((r) => r.ok).catch(() => false);
+        } catch (e) { return Promise.resolve(false); }
+      }
+      // Demo mode — show OTP on screen + also notify the TRI TECH inbox
+      if (demoOtp) {
+        demoOtp.hidden = false;
+        const code = demoOtp.querySelector("strong");
+        if (code) code.textContent = otp;
+      }
+      notifyTritech({
+        _subject: "TRI TECH — Login OTP for " + email,
+        "Email": email,
+        "OTP": otp,
+        "Time": new Date().toLocaleString()
+      });
+      return Promise.resolve(true);
+    }
+
+    function sendOtp() {
+      const email = emailInput.value.trim();
+      if (!isValidEmail(email)) return fail("Please enter a valid email address.");
+      currentOtp = String(Math.floor(100000 + Math.random() * 900000));
+      otpExpiry = Date.now() + 5 * 60 * 1000;
       note.classList.remove("error");
       note.textContent = "";
+      otpRow.hidden = false;
+      otpInput.value = "";
+      if (otpEmailLabel) otpEmailLabel.textContent = email;
+      if (demoOtp) demoOtp.hidden = !!OTP_GAS_URL;
+      sendBtn.disabled = true;
+      otpInput.focus();
+      deliverOtp(email, currentOtp);
 
+      let cooldown = 30;
+      if (resendBtn) { resendBtn.disabled = true; resendBtn.textContent = "Resend OTP (" + cooldown + "s)"; }
+      const timer = setInterval(() => {
+        cooldown--;
+        if (resendBtn) {
+          resendBtn.disabled = cooldown > 0;
+          resendBtn.textContent = cooldown > 0 ? "Resend OTP (" + cooldown + "s)" : "Resend OTP";
+        }
+        if (otpTimer) {
+          const left = Math.max(0, Math.round((otpExpiry - Date.now()) / 1000));
+          otpTimer.textContent = "Expires in " + Math.floor(left / 60) + ":" + String(left % 60).padStart(2, "0");
+        }
+        if (cooldown <= 0) clearInterval(timer);
+      }, 1000);
+    }
+
+    function verifyOtp() {
       const email = emailInput.value.trim();
-      const pass = passInput.value;
+      const code = otpInput.value.trim();
+      if (!email || !isValidEmail(email)) return fail("Please enter a valid email address.");
+      if (!/^\d{6}$/.test(code)) return fail("Please enter the 6-digit OTP.");
+      if (Date.now() > otpExpiry) return fail("The OTP has expired. Please request a new one.");
+      if (code !== currentOtp) return fail("Incorrect OTP. Please try again.");
+
       const permInput = form.querySelector('input[name="permission"]:checked');
       const role = (permInput && permInput.value) || "admin";
 
-      if (!email) return fail("Please enter your email or username.");
-      if (!isValidEmail(email)) return fail("Please enter a valid email address.");
-      if (!pass) return fail("Please enter your password.");
-      if (pass.length < 6) return fail("Password must be at least 6 characters.");
+      try {
+        localStorage.setItem("tritech.session", JSON.stringify({ portal, email, ts: Date.now(), method: "Email OTP", permission: { role } }));
+        if (remember && remember.checked) {
+          localStorage.setItem("tritech.remembered", email);
+        } else {
+          localStorage.removeItem("tritech.remembered");
+        }
+      } catch (err) { /* storage unavailable — ignore */ }
 
-      const original = button.textContent;
-      button.disabled = true;
-      button.textContent = portal === "dev" ? "Authenticating…" : "Signing in…";
+      notifyTritech({
+        _subject: "TRI TECH — New " + (portal === "dev" ? "Developer" : "Client") + " Login Notification",
+        "Portal": portal === "dev" ? "Developer Console" : "Client Portal",
+        "Email": email,
+        "Method": "Email OTP",
+        "Time": new Date().toLocaleString()
+      });
 
+      note.classList.remove("error");
+      note.textContent = portal === "dev"
+        ? "✓ Access granted as " + DASH_ROLES[role].label + ". Opening console…"
+        : "✓ Logged in! Redirecting to your portal…";
+      verifyBtn.disabled = true;
+      verifyBtn.textContent = "✓ Verified";
       setTimeout(() => {
-        try {
-          localStorage.setItem("tritech.session", JSON.stringify({ portal, email, ts: Date.now(), permission: { role } }));
-          if (remember && remember.checked) {
-            localStorage.setItem("tritech.remembered", email);
-          } else {
-            localStorage.removeItem("tritech.remembered");
-          }
-        } catch (err) { /* storage unavailable — ignore */ }
-
-        notifyTritech({
-          _subject: "TRI TECH — New " + (portal === "dev" ? "Developer" : "Client") + " Login Notification",
-          "Portal": portal === "dev" ? "Developer Console" : "Client Portal",
-          "Email": email,
-          "Method": "Email + Password",
-          "Time": new Date().toLocaleString()
-        });
-
-        note.textContent = portal === "dev"
-          ? "✓ Access granted as " + DASH_ROLES[role].label + ". Opening console…"
-          : "✓ Welcome back! Redirecting to your portal…";
-        button.textContent = portal === "dev" ? "✓ Permission Granted" : "✓ Signed In";
-
-        setTimeout(() => {
-          window.location.href = portal === "dev" ? "website-editor.html" : "index.html#home";
-        }, 1100);
+        window.location.href = portal === "dev" ? "website-editor.html" : "index.html#home";
       }, 900);
-    });
+    }
+
+    if (sendBtn) sendBtn.addEventListener("click", sendOtp);
+    if (resendBtn) resendBtn.addEventListener("click", sendOtp);
+    if (verifyBtn) verifyBtn.addEventListener("click", verifyOtp);
+    otpInput.addEventListener("keydown", (e) => { if (e.key === "Enter") verifyOtp(); });
+    emailInput.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); sendOtp(); } });
   });
 
   /* ---------------------------------------------------------

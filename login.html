@@ -20,8 +20,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
 
-  <link rel="stylesheet" href="css/styles.css?v=7" />
-  <link rel="stylesheet" href="css/auth.css?v=7" />
+  <link rel="stylesheet" href="css/styles.css?v=8" />
+  <link rel="stylesheet" href="css/auth.css?v=8" />
 </head>
 
 <body class="auth-page">
@@ -62,7 +62,7 @@
         </div>
       </div>
 
-      <form id="login-form" data-auth="client" data-email="login-email" data-pass="login-password" data-note="login-note" novalidate>
+      <form id="login-form" data-auth="client" data-email="login-email" data-note="login-note" novalidate>
         <div class="field">
           <label for="login-email">Email address</label>
           <div class="field-control">
@@ -71,27 +71,25 @@
           </div>
         </div>
 
-        <div class="field">
-          <label for="login-password">Password</label>
-          <div class="field-control">
-            <svg class="field-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-            <input type="password" id="login-password" name="password" placeholder="••••••••" autocomplete="current-password" class="has-toggle" required />
-            <button type="button" class="pass-toggle" data-target="login-password" aria-label="Show password" aria-pressed="false">
-              <svg class="eye-on" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.6"/></svg>
-              <svg class="eye-off" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 0 1-4.24-4.24M1 1l22 22" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </button>
+        <button type="button" class="btn btn-primary auth-submit" data-send-otp>Get OTP →</button>
+
+        <div class="otp-row" hidden>
+          <p class="otp-sent">OTP sent to <strong id="login-otp-email">your email</strong></p>
+          <label for="login-otp" class="otp-label">Enter 6-digit OTP</label>
+          <input type="text" id="login-otp" class="otp-input" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" placeholder="······" />
+          <button type="button" class="btn btn-primary auth-submit" data-verify-otp>Verify &amp; Login →</button>
+          <div class="otp-help">
+            <button type="button" class="otp-resend" data-resend-otp>Resend OTP</button>
+            <span class="otp-timer"></span>
           </div>
+          <p class="demo-otp" hidden data-demo-otp>Demo mode — OTP: <strong></strong></p>
         </div>
 
-        <div class="auth-options">
-          <label class="auth-remember">
-            <input type="checkbox" id="login-remember" name="remember" />
-            Remember me
-          </label>
-          <a href="#" class="auth-forgot" data-forgot>Forgot password?</a>
-        </div>
+        <label class="auth-remember auth-remember-row">
+          <input type="checkbox" id="login-remember" name="remember" />
+          Remember me
+        </label>
 
-        <button type="submit" class="btn btn-primary auth-submit">Sign In →</button>
         <p class="auth-note" id="login-note" role="status"></p>
       </form>
 
@@ -213,6 +211,6 @@
     </div>
   </div>
 
-  <script src="js/auth.js?v=7" defer></script>
+  <script src="js/auth.js?v=8" defer></script>
 </body>
 </html>
