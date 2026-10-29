@@ -42,15 +42,18 @@
      Uses FormSubmit (free form-to-email, no backend needed).
      --------------------------------------------------------- */
   const NOTIFY_EMAIL = "tritechglobalsolutions3@gmail.com";
-  function notifyTritech(payload) {
+  async function notifyTritech(payload) {
     try {
       const body = Object.assign({ _captcha: "false" }, payload);
-      fetch("https://formsubmit.co/ajax/" + NOTIFY_EMAIL, {
+      const response = await fetch("https://formsubmit.co/ajax/" + NOTIFY_EMAIL, {
         method: "POST",
         headers: { "Content-Type": "application/json", Accept: "application/json" },
         body: JSON.stringify(body)
-      }).catch(() => { /* best-effort — never block the login flow */ });
-    } catch (e) { /* ignore */ }
+      });
+      if (!response.ok) return false;
+      const result = await response.json();
+      return result.success === true || result.success === "true";
+    } catch (e) { return false; }
   }
 
   /* ---------------------------------------------------------
@@ -74,6 +77,25 @@
       const res = await fetch(KVDB + "/" + key, { method: "PUT", body: JSON.stringify(value) });
       return res.ok;
     } catch (e) { return false; }
+  }
+
+  async function submitAccessRequest(email, mobile, details) {
+    let stored = false;
+    try {
+      const requests = await kvGet("requests");
+      const list = Array.isArray(requests) ? requests : [];
+      list.push({ email, mobile, details, ts: Date.now(), status: "pending" });
+      stored = await kvSet("requests", list);
+    } catch (e) { /* email delivery is handled separately */ }
+
+    const emailed = await notifyTritech({
+      _subject: "TRI TECH — New Client Access Request",
+      "Email": email,
+      "Mobile Number": mobile,
+      "Details": details,
+      "Time": new Date().toLocaleString()
+    });
+    return { stored, emailed };
   }
 
   /* ---------------------------------------------------------
@@ -103,249 +125,15 @@
     }
   } catch (e) { /* storage unavailable — ignore */ }
 
-  /* ---------------------------------------------------------
-     OTP login — email verification
-     --------------------------------------------------------- */
-  const OTP_GAS_URL = ""; // Optional: paste a Google Apps Script web-app URL
-                         // here to email OTPs to users for real (see notes).
-
-  $$("form[data-auth]").forEach((form) => {
-    const portal = form.getAttribute("data-auth");
-    const emailInput = $("#" + form.getAttribute("data-email"));
-    const note = $("#" + form.getAttribute("data-note"));
-    const remember = $('input[type="checkbox"]', form);
-    const card = form.closest(".auth-card");
-    const otpRow = form.querySelector(".otp-row");
-    const otpInput = form.querySelector(".otp-input");
-    const sendBtn = form.querySelector("[data-send-otp]");
-    const verifyBtn = form.querySelector("[data-verify-otp]");
-    const resendBtn = form.querySelector("[data-resend-otp]");
-    const otpTimer = form.querySelector(".otp-timer");
-    const otpEmailLabel = form.querySelector(".otp-sent strong");
-    const demoOtp = form.querySelector("[data-demo-otp]");
-
-    if (!emailInput || !note || !otpRow || !otpInput || !sendBtn || !verifyBtn) return;
-
-    let currentOtp = "";
-    let otpExpiry = 0;
-
-    function fail(msg) {
-      note.textContent = msg;
-      note.classList.add("error");
-      if (card) {
-        card.classList.remove("shake");
-        void card.offsetWidth; /* restart animation */
-        card.classList.add("shake");
-      }
-    }
-
-    function deliverOtp(email, otp) {
-      if (OTP_GAS_URL) {
-        try {
-          return fetch(OTP_GAS_URL, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email: email, otp: otp })
-          }).then((r) => r.ok).catch(() => false);
-        } catch (e) { return Promise.resolve(false); }
-      }
-      // Demo mode — show OTP on screen + also notify the TRI TECH inbox
-      if (demoOtp) {
-        demoOtp.hidden = false;
-        const code = demoOtp.querySelector("strong");
-        if (code) code.textContent = otp;
-      }
-      notifyTritech({
-        _subject: "TRI TECH — Login OTP for " + email,
-        "Email": email,
-        "OTP": otp,
-        "Time": new Date().toLocaleString()
-      });
-      return Promise.resolve(true);
-    }
-
-    function sendOtp() {
-      const email = emailInput.value.trim();
-      if (!isValidEmail(email)) return fail("Please enter a valid email address.");
-      currentOtp = String(Math.floor(100000 + Math.random() * 900000));
-      otpExpiry = Date.now() + 5 * 60 * 1000;
-      note.classList.remove("error");
-      note.textContent = "";
-      otpRow.hidden = false;
-      otpInput.value = "";
-      if (otpEmailLabel) otpEmailLabel.textContent = email;
-      if (demoOtp) demoOtp.hidden = !!OTP_GAS_URL;
-      sendBtn.disabled = true;
-      otpInput.focus();
-      deliverOtp(email, currentOtp);
-
-      let cooldown = 30;
-      if (resendBtn) { resendBtn.disabled = true; resendBtn.textContent = "Resend OTP (" + cooldown + "s)"; }
-      const timer = setInterval(() => {
-        cooldown--;
-        if (resendBtn) {
-          resendBtn.disabled = cooldown > 0;
-          resendBtn.textContent = cooldown > 0 ? "Resend OTP (" + cooldown + "s)" : "Resend OTP";
-        }
-        if (otpTimer) {
-          const left = Math.max(0, Math.round((otpExpiry - Date.now()) / 1000));
-          otpTimer.textContent = "Expires in " + Math.floor(left / 60) + ":" + String(left % 60).padStart(2, "0");
-        }
-        if (cooldown <= 0) clearInterval(timer);
-      }, 1000);
-    }
-
-    function verifyOtp() {
-      const email = emailInput.value.trim();
-      const code = otpInput.value.trim();
-      if (!email || !isValidEmail(email)) return fail("Please enter a valid email address.");
-      if (!/^\d{6}$/.test(code)) return fail("Please enter the 6-digit OTP.");
-      if (Date.now() > otpExpiry) return fail("The OTP has expired. Please request a new one.");
-      if (code !== currentOtp) return fail("Incorrect OTP. Please try again.");
-
-      const permInput = form.querySelector('input[name="permission"]:checked');
-      const role = (permInput && permInput.value) || "admin";
-
-      try {
-        localStorage.setItem("tritech.session", JSON.stringify({ portal, email, ts: Date.now(), method: "Email OTP", permission: { role } }));
-        if (remember && remember.checked) {
-          localStorage.setItem("tritech.remembered", email);
-        } else {
-          localStorage.removeItem("tritech.remembered");
-        }
-      } catch (err) { /* storage unavailable — ignore */ }
-
-      notifyTritech({
-        _subject: "TRI TECH — New " + (portal === "dev" ? "Developer" : "Client") + " Login Notification",
-        "Portal": portal === "dev" ? "Developer Console" : "Client Portal",
-        "Email": email,
-        "Method": "Email OTP",
-        "Time": new Date().toLocaleString()
-      });
-
-      note.classList.remove("error");
-      note.textContent = portal === "dev"
-        ? "✓ Access granted as " + DASH_ROLES[role].label + ". Opening console…"
-        : "✓ Logged in! Redirecting to your portal…";
-      verifyBtn.disabled = true;
-      verifyBtn.textContent = "✓ Verified";
-      setTimeout(() => {
-        window.location.href = portal === "dev" ? "website-editor.html" : "index.html#home";
-      }, 900);
-    }
-
-    if (sendBtn) sendBtn.addEventListener("click", sendOtp);
-    if (resendBtn) resendBtn.addEventListener("click", sendOtp);
-    if (verifyBtn) verifyBtn.addEventListener("click", verifyOtp);
-    otpInput.addEventListener("keydown", (e) => { if (e.key === "Enter") verifyOtp(); });
-    emailInput.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); sendOtp(); } });
-  });
-
-  /* ---------------------------------------------------------
-     Forgot password / reset token (demo)
-     --------------------------------------------------------- */
-  $$("[data-forgot]").forEach((link) => {
-    link.addEventListener("click", (e) => {
-      e.preventDefault();
-      const form = $("form[data-auth]");
-      if (!form) return;
+  $$('form[data-auth]').forEach((form) => {
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
       const note = $("#" + form.getAttribute("data-note"));
-      const emailInput = $("#" + form.getAttribute("data-email"));
-      if (!note || !emailInput) return;
-      const email = emailInput.value.trim();
-      note.classList.remove("error");
-      note.textContent = email && isValidEmail(email)
-        ? "✓ Reset link sent to " + email + " (demo)"
-        : "Enter your email above, then we'll send a reset link (demo).";
+      if (!note) return;
+      note.classList.add("error");
+      note.textContent = "Secure sign-in is not configured yet. No credentials were sent or saved. Please contact TRI TECH for access.";
     });
   });
-
-  /* ---------------------------------------------------------
-     Social login — Continue with Google / GitHub / LinkedIn / GitLab
-     --------------------------------------------------------- */
-  const socialModal = $("#social-modal");
-  const socialForm = $("#social-form");
-  if (socialModal && socialForm) {
-    const socialEmail = $("#social-email");
-    const socialNote = $("#social-note");
-    const socialProvider = $("#social-provider");
-    const socialSubmitLabel = $("#social-submit-label");
-    const socialBtn = $('button[type="submit"]', socialForm);
-    let currentProvider = "";
-
-    function openSocial(provider) {
-      currentProvider = provider;
-      if (socialProvider) socialProvider.textContent = provider;
-      if (socialSubmitLabel) socialSubmitLabel.textContent = provider;
-      if (socialNote) { socialNote.classList.remove("error"); socialNote.textContent = ""; }
-
-      const authForm = $("form[data-auth]");
-      const loginEmail = authForm ? $("#" + authForm.getAttribute("data-email")) : null;
-      if (socialEmail) {
-        socialEmail.value = loginEmail && isValidEmail(loginEmail.value) ? loginEmail.value : "";
-        setTimeout(() => socialEmail.focus(), 120);
-      }
-
-      socialModal.classList.add("open");
-      socialModal.setAttribute("aria-hidden", "false");
-      document.body.classList.add("menu-locked");
-    }
-    function closeSocial() {
-      socialModal.classList.remove("open");
-      socialModal.setAttribute("aria-hidden", "true");
-      document.body.classList.remove("menu-locked");
-    }
-
-    $$("[data-social]").forEach((btn) => {
-      btn.addEventListener("click", () => openSocial(btn.getAttribute("data-social")));
-    });
-
-    const socialClose = $("#social-close");
-    const socialCancel = $("#social-cancel");
-    if (socialClose) socialClose.addEventListener("click", closeSocial);
-    if (socialCancel) socialCancel.addEventListener("click", closeSocial);
-    socialModal.addEventListener("click", (e) => { if (e.target === socialModal) closeSocial(); });
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && socialModal.classList.contains("open")) closeSocial();
-    });
-
-    socialForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      if (socialNote) { socialNote.classList.remove("error"); socialNote.textContent = ""; }
-
-      const email = socialEmail.value.trim();
-      if (!isValidEmail(email)) {
-        socialNote.classList.add("error");
-        socialNote.textContent = "Please enter the email connected to your " + currentProvider + " account.";
-        return;
-      }
-
-      const authForm = $("form[data-auth]");
-      const portal = authForm ? authForm.getAttribute("data-auth") : "client";
-      const permInput = authForm ? authForm.querySelector('input[name="permission"]:checked') : null;
-      const role = (permInput && permInput.value) || "admin";
-      const method = currentProvider + " (SSO)";
-
-      try {
-        localStorage.setItem("tritech.session", JSON.stringify({ portal, email, ts: Date.now(), method, permission: { role } }));
-        localStorage.setItem("tritech.remembered", email);
-      } catch (err) { /* storage unavailable — ignore */ }
-
-      notifyTritech({
-        _subject: "TRI TECH — New " + (portal === "dev" ? "Developer" : "Client") + " Login Notification",
-        "Portal": portal === "dev" ? "Developer Console" : "Client Portal",
-        "Email": email,
-        "Method": method,
-        "Time": new Date().toLocaleString()
-      });
-
-      if (socialBtn) { socialBtn.disabled = true; socialBtn.textContent = "Signing in…"; }
-      if (socialNote) socialNote.textContent = "✓ Signed in with " + currentProvider + "! Redirecting…";
-      setTimeout(() => {
-        window.location.href = portal === "dev" ? "website-editor.html" : "index.html#home";
-      }, 1000);
-    });
-  }
 
   /* ---------------------------------------------------------
      Client Access Request modal (login page)
@@ -419,36 +207,76 @@
         btn.disabled = true;
         btn.textContent = "Submitting…";
 
-        // Store the request in the shared approval store + email the admin
-        let stored = false;
-        try {
-          const list = (await kvGet("requests")) || [];
-          list.push({ email, mobile, details, ts: Date.now(), status: "pending" });
-          stored = await kvSet("requests", list);
-        } catch (err) { /* ignore */ }
-
-        notifyTritech({
-          _subject: "TRI TECH — New Client Access Request",
-          "Email": email,
-          "Mobile Number": mobile,
-          "Details": details,
-          "Time": new Date().toLocaleString()
-        });
+        const result = await submitAccessRequest(email, mobile, details);
 
         form.reset();
         emailField.value = email;
-        note.textContent = stored
-          ? "✓ Request submitted! You can log in once TRI TECH approves your access."
-          : "✓ Request submitted! (Approval sync pending — our team will email you.)";
-        btn.textContent = "✓ Request Sent";
+        note.textContent = result.emailed
+          ? "✓ Request sent to TRI TECH. You can log in once your access is approved."
+          : "Request saved, but the email could not be sent. Please try again later or contact us directly.";
+        note.classList.toggle("error", !result.emailed);
+        btn.textContent = result.emailed ? "✓ Request Sent" : "Try Again";
         btn.disabled = false;
-        setTimeout(closeModal, 2400);
+        if (result.emailed) setTimeout(closeModal, 2400);
         setTimeout(() => {
           note.textContent = "";
           btn.textContent = "Submit Request →";
         }, 4000);
       });
     }
+  }
+
+  const standaloneAccessForm = $("#standalone-access-form");
+  if (standaloneAccessForm) {
+    const emailField = $("#access-email");
+    const mobileField = $("#access-mobile");
+    const detailsField = $("#access-details");
+    const note = $("#access-note");
+    const button = standaloneAccessForm.querySelector('button[type="submit"]');
+    const rememberedEmail = localStorage.getItem("tritech.access-email");
+    if (rememberedEmail && emailField) emailField.value = rememberedEmail;
+
+    standaloneAccessForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      note.classList.remove("error");
+      note.textContent = "";
+      const email = emailField.value.trim();
+      const mobile = mobileField.value.trim();
+      const details = detailsField.value.trim();
+
+      if (!isValidEmail(email)) {
+        note.classList.add("error");
+        note.textContent = "Please enter a valid email address.";
+        return;
+      }
+      if (!/^(\+?91[\s-]?)?[6-9]\d{9}$/.test(mobile.replace(/[\s-]/g, ""))) {
+        note.classList.add("error");
+        note.textContent = "Please enter a valid Indian mobile number.";
+        return;
+      }
+      if (details.length < 10) {
+        note.classList.add("error");
+        note.textContent = "Please share a few more details (at least 10 characters).";
+        return;
+      }
+
+      button.disabled = true;
+      button.textContent = "Sending…";
+      const result = await submitAccessRequest(email, mobile, details);
+      if (result.emailed) {
+        note.textContent = "Your access request was emailed to TRI TECH. We’ll contact you after reviewing it.";
+        standaloneAccessForm.reset();
+        try { localStorage.setItem("tritech.access-email", email); } catch (e) { /* storage optional */ }
+        button.textContent = "Request Sent";
+      } else {
+        note.classList.add("error");
+        note.textContent = result.stored
+          ? "We saved your request, but email delivery failed. Please try again later."
+          : "We couldn’t submit the request. Check your connection and try again.";
+        button.textContent = "Try Again";
+      }
+      button.disabled = false;
+    });
   }
 
   /* ---------------------------------------------------------

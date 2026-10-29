@@ -486,12 +486,12 @@
   }
 
   /* ---------------------------------------------------------
-     Contact form (front-end validation + success state)
+    Contact form (validation + email delivery)
      --------------------------------------------------------- */
   const form = $("#contact-form");
   if (form) {
     const note = $("#form-note");
-    form.addEventListener("submit", (e) => {
+    form.addEventListener("submit", async (e) => {
       e.preventDefault();
       note.classList.remove("error");
       note.textContent = "";
@@ -501,7 +501,10 @@
 
       const name = $("#cf-name").value.trim();
       const email = $("#cf-email").value.trim();
+      const phone = $("#cf-phone").value.trim();
+      const company = $("#cf-company").value.trim();
       const service = $("#cf-service").value;
+      const budget = $("#cf-budget").value;
       const message = $("#cf-message").value.trim();
       const emailOk = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$/.test(email);
 
@@ -513,12 +516,38 @@
       button.textContent = "Sending…";
       button.disabled = true;
 
-      setTimeout(() => {
-        note.textContent = "✓ Thank you! Your inquiry has been received. Our team will reach out within 24 hours.";
+      try {
+        const response = await fetch("https://formsubmit.co/ajax/tritechglobalsolutions3@gmail.com", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          body: JSON.stringify({
+            _captcha: "false",
+            _subject: "TRI TECH — New Project Inquiry",
+            Name: name,
+            Email: email,
+            Phone: phone,
+            Company: company,
+            Service: service,
+            Budget: budget,
+            Message: message
+          })
+        });
+        const result = await response.json();
+        if (!response.ok || !(result.success === true || result.success === "true")) {
+          throw new Error("Inquiry delivery failed");
+        }
+
+        note.textContent = "Thank you. Your inquiry was sent to TRI TECH.";
         form.reset();
-        button.textContent = "✓ Inquiry Sent";
-        setTimeout(() => { button.textContent = original; button.disabled = false; }, 4000);
-      }, 900);
+        button.textContent = "Inquiry Sent";
+        setTimeout(() => { button.textContent = original; }, 4000);
+      } catch (error) {
+        note.classList.add("error");
+        note.textContent = "We couldn't send your inquiry. Please email tritechglobalsolutions3@gmail.com.";
+        button.textContent = original;
+      } finally {
+        button.disabled = false;
+      }
 
       function fail(msg) {
         note.classList.add("error");
@@ -534,5 +563,5 @@
   $$(".word").forEach((w, i) => w.style.animationDelay = `${0.15 + i * 0.13}s`);
 
   onScroll();
-})();
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") toggleMenu(false); });
+})();
